@@ -1,17 +1,18 @@
 from sqlalchemy.orm import mapped_collection
-from sqlalchemy import String, DateTime
+from sqlalchemy import String, DateTime, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime, timezone
+import uuid 
 
 from app.database.db import Base
 
 class UserModel(Base):
     __tablename__ = "users"
 
-    id : Mapped[str] = mapped_column(
-        String,
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         primary_key=True,
-        nullable=False
+        default=uuid.uuid4
     )
 
     name : Mapped[str] = mapped_column(
@@ -29,12 +30,12 @@ class UserModel(Base):
         nullable=False
     )
     created_at : Mapped[datetime] = mapped_column(
-        DateTime,
+        DateTime(timezone=True),
         nullable=False,
         default=lambda: datetime.now(timezone.utc),
     )
     updated_at : Mapped[datetime] = mapped_column(
-        DateTime,
+        DateTime(timezone=True),
         nullable=False,
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
