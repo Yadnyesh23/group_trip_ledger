@@ -23,23 +23,31 @@ class LoginRequest(BaseModel):
 # RESPONSES
 # =========================
 
-class RegisterResponse(BaseModel):
+class UserResponse(BaseModel):
     id: UUID
     name: str
     email: EmailStr
     created_at: datetime
     updated_at: datetime
 
-
-class LoginResponse(BaseModel):
+class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
+    
+class RegisterResponse(BaseModel):
+    statuscode : int
+    message : str
+    data : UserResponse
+
+
+class LoginResponse(BaseModel):
+    statuscode : int
+    message : str
+    tokens : TokenResponse
 
 
 class MeResponse(BaseModel):
-    id: UUID
-    name: str
-    email: EmailStr
-    created_at: datetime
-    updated_at: datetime
+    status_code : int
+    message : str
+    data : UserResponse
