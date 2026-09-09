@@ -1,0 +1,11 @@
+# fastapi
+fastapi
+uvicorn[standard]
+pydantic
+python-dotenv
+
+# database
+sqlalchemy
+psycopg[binary]
+alembic
+
