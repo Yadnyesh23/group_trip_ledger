@@ -51,3 +51,7 @@ class MeResponse(BaseModel):
     status_code : int
     message : str
     data : UserResponse
+
+class LogoutResponse(BaseModel):
+    status_code : int
+    message : str

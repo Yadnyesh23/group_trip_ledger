@@ -1,4 +1,4 @@
-from sqlalchemy.orm import mapped_collection
+from sqlalchemy.orm import mapped_collection, relationship
 from sqlalchemy import String, DateTime, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime, timezone
@@ -42,6 +42,10 @@ class UserModel(Base):
     )
 
     # Relationships
-    # Yet to be written
+    refresh_tokens = relationship(
+        "RefreshTokenModel",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
 
 
