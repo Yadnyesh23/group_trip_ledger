@@ -4,7 +4,7 @@ from app.database.db import get_db
 from app.services.health import HealthService
 from app.schemas.health import HealthCheckResponse
 
-router = APIRouter(prefix='/api/v1', tags=['health'])
+router = APIRouter(prefix='/api/v1', tags=['Health'])
 
 @router.get("/health", response_model=HealthCheckResponse)
 def health_check(db=Depends(get_db)):

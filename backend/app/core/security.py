@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
 from bcrypt import hashpw, gensalt, checkpw
+from fastapi.security import HTTPBearer
 import jwt
 
 from app.core.config import settings
@@ -46,3 +47,7 @@ def hash_password(password: str) -> str:
 
 def verify_password(password: str, hashed_password: str) -> bool:
     return checkpw(password.encode(), hashed_password.encode())
+
+
+
+bearer_scheme = HTTPBearer()

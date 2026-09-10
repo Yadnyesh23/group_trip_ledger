@@ -4,7 +4,7 @@
 
 ### 1. Register User
 
-**POST** `/api/auth/register`
+**POST** `/api/v1/auth/register`
 
 **Request Body**
 ```json
@@ -34,7 +34,7 @@
 
 ### 2. Login User
 
-**POST** `/api/auth/login`
+**POST** `/api/v1/auth/login`
 
 **Request Body**
 ```json
@@ -53,6 +53,25 @@
     "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "token_type": "bearer"
+  }
+}
+```
+
+### 3. Get Me
+
+**POST** `/api/v1/auth/me`
+
+**Response Body**
+```json
+{
+  "status_code": 200,
+  "message": "User fetched successfully",
+  "data": {
+    "id": "da76cbab-3787-479b-928e-1f0d09bd2d57",
+    "name": "user1",
+    "email": "user1@example.com",
+    "created_at": "2026-09-09T18:22:48.958602Z",
+    "updated_at": "2026-09-09T18:22:48.958605Z"
   }
 }
 ```

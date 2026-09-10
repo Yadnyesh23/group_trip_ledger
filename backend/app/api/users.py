@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.schemas.auth import RegisterRequest, RegisterResponse, UserResponse, LoginRequest, LoginResponse, TokenResponse
+from app.schemas.auth import RegisterRequest, RegisterResponse, UserResponse, LoginRequest, LoginResponse, TokenResponse, MeResponse
 from app.services.auth import AuthService
 from app.database.db import get_db
+from app.core.dependencies import get_current_user
+from app.models.users import UserModel
 
 router = APIRouter(prefix="/api/v1/auth", tags=["Auth"])
 
@@ -37,3 +39,19 @@ async def login(request : LoginRequest, db : AsyncSession = Depends(get_db)):
         )
     )
 
+@router.get("/me")
+async def get_me(
+    current_user: UserModel = Depends(get_current_user)
+):
+    return MeResponse(
+        status_code=200,
+        message="User fetched successfully",
+        data = UserResponse(
+            id=current_user.id,
+            name=current_user.name,
+            email=current_user.email,
+            created_at=current_user.created_at,
+            updated_at=current_user.updated_at
+    )
+    )
+   
