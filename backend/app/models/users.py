@@ -48,4 +48,9 @@ class UserModel(Base):
         cascade="all, delete-orphan"
     )
 
+    trips = relationship(
+        "TripModel",
+        back_populates="owner"
+    )
+
 
