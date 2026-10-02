@@ -71,3 +71,8 @@ class TripModel(Base):
         "UserModel",
         back_populates="trips",
     )
+    
+    trip_memberships = relationship(
+        "TripMembershipModel",
+        back_populates="trip"
+    )

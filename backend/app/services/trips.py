@@ -5,7 +5,9 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.trips import TripModel
+from app.models.trip_membership import TripMembershipModel
 from app.repositories.trips import TripRepository
+from app.repositories.trip_membership import TripMembershipRepository
 from app.schemas.trips import UpdateTripRequest
 
 class TripService:
@@ -13,6 +15,7 @@ class TripService:
     def __init__(self, db: AsyncSession):
         self.db = db
         self.trip_repo = TripRepository(db)
+        self.membership_repo = TripMembershipRepository(db)
 
     async def create_trip(
         self,
@@ -41,7 +44,17 @@ class TripService:
             owner_id=user_id,
         )
 
-        return await self.trip_repo.create_trip(trip)
+        trip = await self.trip_repo.create_trip(trip)
+
+        membership = TripMembershipModel(
+                trip_id=trip.id,
+                user_id=user_id,
+                joined_at=date.today(),
+                status="ACTIVE",
+            )
+        await self.membership_repo.create(membership)
+        await self.db.commit()
+        return trip
 
     async def get_trip_by_id(
         self,

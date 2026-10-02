@@ -8,6 +8,7 @@ from app.schemas.trips import (
     TripResponse,
     UpdateTripRequest,
     UpdateTripResponse,
+    GetTripByIdResponse
 )
 from app.models.users import UserModel
 from app.core.dependencies import get_current_user
@@ -83,7 +84,7 @@ async def get_trip_by_id(
             detail="Trip not found",
         )
 
-    return TripResponse(
+    return  TripResponse(
         id=trip.id,
         name=trip.name,
         description=trip.description,

@@ -49,5 +49,10 @@ class UpdateTripResponse(BaseModel):
     message : str
     data: TripResponse
 
+class GetTripByIdResponse(BaseModel):
+    status_code: int
+    message : str
+    data: TripResponse
+
 class TripListResponse(BaseModel):
     trips: list[TripResponse]

@@ -53,4 +53,9 @@ class UserModel(Base):
         back_populates="owner"
     )
 
+    user_memberships = relationship(
+        "TripMembershipModel",
+        back_populates="user"
+    )
+
 
