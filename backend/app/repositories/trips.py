@@ -1,11 +1,12 @@
+from psycopg.types.uuid import UUID
 import uuid
 from datetime import date
 
-from sqlalchemy import select
+from sqlalchemy import select, exists
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.trips import TripModel
-
+from app.models.trip_membership import TripMembershipModel
 
 class TripRepository:
 
@@ -47,6 +48,15 @@ class TripRepository:
         result = await self.db.execute(stmt)
 
         return result.scalars().all()
+    
+    async def is_member(self, trip_id: UUID, user_id: UUID) -> bool:
+        stmt = select(
+            exists().where(
+                TripMembershipModel.trip_id == trip_id,
+                TripMembershipModel.user_id == user_id,
+            )
+    )
+        return bool(await self.db.scalar(stmt))
 
     async def update_trip(
         self,

@@ -58,4 +58,30 @@ class UserModel(Base):
         back_populates="user"
     )
 
+    expenses_paid = relationship(
+        "ExpenseModel",
+        back_populates="paid_by"
+    )
+
+    expense_participants = relationship(
+        "ExpenseParticipantModel",
+        back_populates="user"
+    )
+
+    expense_allocations = relationship(
+        "ExpenseAllocationModel",
+        back_populates="user"
+    )
+    payments_sent = relationship(
+        "PaymentModel",
+        foreign_keys="PaymentModel.from_user_id",
+        back_populates="from_user"
+    )
+
+    payments_received = relationship(
+        "PaymentModel",
+        foreign_keys="PaymentModel.to_user_id",
+        back_populates="to_user"
+    )
+
 

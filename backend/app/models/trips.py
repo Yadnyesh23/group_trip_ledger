@@ -76,3 +76,13 @@ class TripModel(Base):
         "TripMembershipModel",
         back_populates="trip"
     )
+
+    expenses = relationship(
+        "ExpenseModel",
+        back_populates="trip"
+    )
+
+    payments = relationship(
+    "PaymentModel",
+    back_populates="trip"
+    )

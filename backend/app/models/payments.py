@@ -1,22 +1,18 @@
 import uuid
-from datetime import date, datetime, timezone
-
-from sqlalchemy import Date, DateTime, UUID, ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
+from decimal import Decimal
+from datetime import datetime, date, timezone
+from sqlalchemy import(
+    UUID, 
+    ForeignKey,
+    Date,
+    Numeric,
+    DateTime
+)
 from app.database.db import Base
 
-
-class TripMembershipModel(Base):
-    __tablename__ = "trip_members"
-
-    __table_args__ = (
-        UniqueConstraint(
-            "trip_id",
-            "user_id",
-            name="uq_trip_member"
-        ),
-    )
+class PaymentModel(Base):
+    __tablename__ = "payments"
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -30,26 +26,27 @@ class TripMembershipModel(Base):
         nullable=False
     )
 
-    user_id: Mapped[uuid.UUID] = mapped_column(
+    from_user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id"),
         nullable=False
     )
 
-    joined_at: Mapped[date] = mapped_column(
-        Date,
+    to_user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id"),
         nullable=False
     )
 
-    left_at: Mapped[date | None] = mapped_column(
-        Date,
-        nullable=True
+    amount: Mapped[Decimal] = mapped_column(
+        Numeric(10, 2),
+        nullable=False
     )
 
-    status: Mapped[str] = mapped_column(
-        String(20),
+    payment_date: Mapped[date] = mapped_column(
+        Date,
         nullable=False,
-        default="ACTIVE"
+        default=date.today
     )
 
     created_at: Mapped[datetime] = mapped_column(
@@ -65,13 +62,20 @@ class TripMembershipModel(Base):
         onupdate=lambda: datetime.now(timezone.utc)
     )
 
+    # Relationships
     trip = relationship(
         "TripModel",
-        back_populates="trip_memberships"
+        back_populates="payments"
     )
 
-    user = relationship(
+    from_user = relationship(
         "UserModel",
-        back_populates="user_memberships"
+        foreign_keys=[from_user_id],
+        back_populates="payments_sent"
     )
-    
+
+    to_user = relationship(
+        "UserModel",
+        foreign_keys=[to_user_id],
+        back_populates="payments_received"
+    )
