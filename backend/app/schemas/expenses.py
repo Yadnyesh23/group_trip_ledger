@@ -69,6 +69,7 @@ class ExpenseResponse(BaseModel):
     category: str | None
 
     paid_by_user_id: UUID
+    paid_by_name: str
 
     expense_date: date
 

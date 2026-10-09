@@ -193,7 +193,12 @@ class ExpensesService:
         # Refresh expense after commit
         await self.db.refresh(new_expense)
 
-        return new_expense
+        result = await self.expense_repo.get_expense_with_payer_name(
+        trip_id=trip_id,
+        expense_id=new_expense.id,
+        )
+
+        return result
     
     async def get_expense_by_id(
         self,
@@ -210,7 +215,10 @@ class ExpensesService:
         if current_user_id != trip.owner_id:
             raise HTTPException(status_code=403, detail="Only owner can see expenses")
         
-        expense = await self.expense_repo.get_expense_by_id(trip_id, expense_id)
+        expense = await self.expense_repo.get_expense_with_payer_name(
+            trip_id,
+            expense_id,
+        )
 
         if expense is None:
             raise HTTPException(status_code=404, detail="Expense not found")
@@ -233,7 +241,9 @@ class ExpensesService:
         if current_user_id != trip.owner_id:
             raise HTTPException(status_code=403, detail="Only owner can see expenses")
         
-        expenses = await self.expense_repo.get_all_expenses_of_trip(trip_id)
+        expenses = (
+            await self.expense_repo.get_all_expenses_with_payer_names(trip_id)
+        )
 
         if len(expenses) == 0:
             raise HTTPException(status_code=404, detail="Expenses list is empty")

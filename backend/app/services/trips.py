@@ -25,7 +25,7 @@ class TripService:
         location: str | None,
         start_date: date,
         end_date: date,
-    ) -> TripModel:
+    ) -> tuple[TripModel, str] | None:
 
         
         if start_date > end_date:
@@ -54,7 +54,9 @@ class TripService:
             )
         await self.membership_repo.create(membership)
         await self.db.commit()
-        return trip
+        return await self.trip_repo.get_trip_with_owner_name(
+            trip.id
+        )
 
     async def get_trip_by_id(
         self,
@@ -76,19 +78,22 @@ class TripService:
                 detail="You do not have access to this trip"
             )
 
-        return trip
+        return await self.trip_repo.get_trip_with_owner_name(
+            trip_id
+        )
 
     async def get_trips_by_owner(
         self,
         user_id: uuid.UUID,
-    ) -> list[TripModel]:
-
-        return await self.trip_repo.get_trips_owned_by_user(user_id)
+    ) -> list[tuple[TripModel, str]]:
+        return await self.trip_repo.get_trips_owned_by_user_with_owner_names(
+            user_id
+        )
 
     async def update_trip(
-    self,
-    trip_id: uuid.UUID,
-    user_id: uuid.UUID,
+        self,
+        trip_id: uuid.UUID,
+        user_id: uuid.UUID,
     data: UpdateTripRequest,
 ) -> TripModel:
 
@@ -140,7 +145,9 @@ class TripService:
             update_data
         )
 
-        return updated_trip
+        return await self.trip_repo.get_trip_with_owner_name(
+            trip_id
+        )
 
     async def delete_trip(
         self,

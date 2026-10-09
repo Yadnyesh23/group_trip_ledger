@@ -1,12 +1,13 @@
-from psycopg.types.uuid import UUID
-import uuid
 from datetime import date
+import uuid
+from uuid import UUID
 
 from sqlalchemy import select, exists
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.trips import TripModel
 from app.models.trip_membership import TripMembershipModel
+from app.models.users import UserModel
 
 class TripRepository:
 
@@ -57,6 +58,41 @@ class TripRepository:
             )
     )
         return bool(await self.db.scalar(stmt))
+    
+    
+    async def get_trip_with_owner_name(
+        self,
+        trip_id: uuid.UUID,
+    ) -> tuple[TripModel, str] | None:
+        stmt = (
+            select(TripModel, UserModel.name)
+            .join(
+                UserModel,
+                TripModel.owner_id == UserModel.id,
+             )
+            .where(TripModel.id == trip_id)
+        )
+
+        result = await self.db.execute(stmt)
+        return result.one_or_none()
+
+
+    async def get_trips_owned_by_user_with_owner_names(
+        self,
+        user_id: uuid.UUID,
+    ) -> list[tuple[TripModel, str]]:
+        stmt = (
+            select(TripModel, UserModel.name)
+            .join(
+                UserModel,
+                TripModel.owner_id == UserModel.id,
+            )
+            .where(TripModel.owner_id == user_id)
+        )
+
+        result = await self.db.execute(stmt)
+        return list(result.all())
+
 
     async def update_trip(
         self,

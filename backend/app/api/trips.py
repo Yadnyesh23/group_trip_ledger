@@ -34,14 +34,14 @@ async def create_trip(
 ):
     trip_service = TripService(db)
 
-    new_trip = await trip_service.create_trip(
-        current_user.id,
-        request.name,
-        request.description,
-        request.location,
-        request.start_date,
-        request.end_date,
-    )
+    new_trip, owner_name = await trip_service.create_trip(
+    current_user.id,
+    request.name,
+    request.description,
+    request.location,
+    request.start_date,
+    request.end_date,
+)
 
     return CreateTripResponse(
         status_code=201,
@@ -52,6 +52,7 @@ async def create_trip(
             description=new_trip.description,
             location=new_trip.location,
             owner_id=new_trip.owner_id,
+            owner_name=owner_name,
             start_date=new_trip.start_date,
             end_date=new_trip.end_date,
             is_completed=new_trip.is_completed,
@@ -73,10 +74,10 @@ async def get_trip_by_id(
 ):
     trip_service = TripService(db)
 
-    trip = await trip_service.get_trip_by_id(
-        trip_id,
-        current_user.id,
-    )
+    trip, owner_name = await trip_service.get_trip_by_id(
+    trip_id,
+    current_user.id,
+)
 
     if not trip:
         raise HTTPException(
@@ -90,6 +91,7 @@ async def get_trip_by_id(
         description=trip.description,
         location=trip.location,
         owner_id=trip.owner_id,
+        owner_name=owner_name,
         start_date=trip.start_date,
         end_date=trip.end_date,
         is_completed=trip.is_completed,
@@ -114,20 +116,21 @@ async def get_my_trips(
     )
 
     return [
-        TripResponse(
-            id=trip.id,
-            name=trip.name,
-            description=trip.description,
-            location=trip.location,
-            owner_id=trip.owner_id,
-            start_date=trip.start_date,
-            end_date=trip.end_date,
-            is_completed=trip.is_completed,
-            created_at=trip.created_at,
-            updated_at=trip.updated_at,
-        )
-        for trip in trips
-    ]
+    TripResponse(
+        id=trip.id,
+        name=trip.name,
+        description=trip.description,
+        location=trip.location,
+        owner_id=trip.owner_id,
+        owner_name=owner_name,
+        start_date=trip.start_date,
+        end_date=trip.end_date,
+        is_completed=trip.is_completed,
+        created_at=trip.created_at,
+        updated_at=trip.updated_at,
+    )
+    for trip, owner_name in trips
+]
 
 
 # --------------------------------------------------
@@ -157,11 +160,11 @@ async def update_trip(
             detail="Trip not found",
         )
 
-    updated_trip = await trip_service.update_trip(
-        trip_id,
-        current_user.id,
-        data,
-    )
+    updated_trip, owner_name = await trip_service.update_trip(
+    trip_id,
+    current_user.id,
+    data,
+)
 
     return UpdateTripResponse(
        status_code = 201,

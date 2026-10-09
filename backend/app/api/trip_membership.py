@@ -33,11 +33,11 @@ async def add_membership(
 ):
     membership_service = TripMembershipService(db)
 
-    membership = await membership_service.create_membership(
-        trip_id=trip_id,
-        user_id=request.user_id,
-        current_user_id=current_user.id,
-    )
+    membership, user_name = await membership_service.create_membership(
+    trip_id=trip_id,
+    user_id=request.user_id,
+    current_user_id=current_user.id,
+)
 
     await db.commit()
 
@@ -48,6 +48,7 @@ async def add_membership(
             id=membership.id,
                 trip_id=membership.trip_id,
                 user_id=membership.user_id,
+                user_name=user_name,
                 joined_at=membership.joined_at,
                 left_at=membership.left_at,
                 status=membership.status,
@@ -73,18 +74,19 @@ async def get_members(
 
     return TripMemberListResponse(
         members=[
-            TripMemberResponse(
-                id=member.id,
-                trip_id=member.trip_id,
-                user_id=member.user_id,
-                joined_at=member.joined_at,
-                left_at=member.left_at,
-                status=member.status,
-                created_at=member.created_at,
-                updated_at=member.updated_at,
-            )
-            for member in members
-        ]
+    TripMemberResponse(
+        id=member.id,
+        trip_id=member.trip_id,
+        user_id=member.user_id,
+        user_name=user_name,
+        joined_at=member.joined_at,
+        left_at=member.left_at,
+        status=member.status,
+        created_at=member.created_at,
+        updated_at=member.updated_at,
+    )
+    for member, user_name in members
+]
     )
 
 
@@ -100,10 +102,11 @@ async def get_member_by_id(
 ):
     membership_service = TripMembershipService(db)
 
-    member = await membership_service.get_member_by_id(
-        trip_id,
-        member_id,
-    )
+    result = await membership_service.get_member_by_id( trip_id, member_id )
+
+    if result is None: 
+        raise HTTPException( status_code=404, detail="Member not found", )
+    member, user_name = result
 
     if not member:
         raise HTTPException(
@@ -115,6 +118,7 @@ async def get_member_by_id(
         id=member.id,
         trip_id=member.trip_id,
         user_id=member.user_id,
+        user_name=user_name,
         joined_at=member.joined_at,
         left_at=member.left_at,
         status=member.status,
@@ -135,16 +139,17 @@ async def remove_member(
 ):
     membership_service = TripMembershipService(db)
 
-    member = await membership_service.remove_member(
-        trip_id,
-        member_id,
-        current_user.id,
-    )
+    member, user_name = await membership_service.remove_member(
+    trip_id,
+    member_id,
+    current_user.id,
+)
 
     return TripMemberResponse(
         id=member.id,
         trip_id=member.trip_id,
         user_id=member.user_id,
+        user_name=user_name,
         joined_at=member.joined_at,
         left_at=member.left_at,
         status=member.status,

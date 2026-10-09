@@ -1,9 +1,11 @@
+from sqlalchemy.engine import result
 from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.expenses import ExpenseModel
+from app.models.users import UserModel
 
 
 class ExpenseRepository:
@@ -56,6 +58,46 @@ class ExpenseRepository:
         result = await self.db.execute(stmt)
 
         return list(result.scalars().all())
+
+    async def get_expense_with_payer_name(
+    self,
+    trip_id: UUID,
+    expense_id: UUID,
+) -> tuple[ExpenseModel, str] | None:
+
+        stmt = (
+            select(ExpenseModel, UserModel.name)
+            .join(
+            UserModel,
+            ExpenseModel.paid_by_user_id == UserModel.id,
+        )
+            .where(
+            ExpenseModel.id == expense_id,
+            ExpenseModel.trip_id == trip_id,
+        )
+    )
+
+        result = await self.db.execute(stmt)
+        return result.one_or_none()
+
+
+    async def get_all_expenses_with_payer_names(
+        self,
+        trip_id: UUID,
+    ) -> list[tuple[ExpenseModel, str]]:
+
+        stmt = (
+            select(ExpenseModel, UserModel.name)
+            .join(
+                UserModel,
+            ExpenseModel.paid_by_user_id == UserModel.id,
+            )
+            .where(ExpenseModel.trip_id == trip_id)
+            .order_by(ExpenseModel.expense_date.desc())
+        )
+
+        result = await self.db.execute(stmt)
+        return list(result.all())
 
     async def update(
         self,

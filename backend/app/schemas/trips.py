@@ -35,6 +35,7 @@ class TripResponse(BaseModel):
     end_date: date
     is_completed: bool
     owner_id: uuid.UUID
+    owner_name: str
     created_at: datetime
     updated_at: datetime
 

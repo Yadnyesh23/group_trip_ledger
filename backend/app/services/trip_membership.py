@@ -66,12 +66,17 @@ class TripMembershipService:
             status="ACTIVE",
         )
 
-        return await self.membership_repo.create(membership)
+        await self.membership_repo.create(membership)
+
+        return await self.membership_repo.get_member_with_name(
+            trip_id,
+            user_id,
+        )
     
     async def get_all_members(
         self,
         trip_id
-    )-> list[TripMembershipModel]:
+    )->list[tuple[TripMembershipModel, str]]:
         trip = await self.trip_repo.get_trip_by_id(trip_id)
 
         if trip is None:
@@ -79,13 +84,15 @@ class TripMembershipService:
                 status_code=404, 
                 detail="Trip not found"
             )
-        return await self.membership_repo.get_all_members(trip_id)
+        return await self.membership_repo.get_all_members_with_names(
+    trip_id
+)
     
     async def get_member_by_id(
         self, 
         trip_id,
         user_id
-    ):
+    )-> tuple[TripMembershipModel, str] | None:
         trip = await self.trip_repo.get_trip_by_id(trip_id)
 
         if trip is None:
@@ -94,8 +101,10 @@ class TripMembershipService:
                 detail="Trip not found"
             )
 
-        member = await self.membership_repo.get_member_by_id(trip_id, user_id)
-        return member
+        return await self.membership_repo.get_member_with_name(
+    trip_id,
+    user_id,
+)
     
     async def remove_member(
         self,
@@ -122,10 +131,10 @@ class TripMembershipService:
             detail="Trip owner cannot be removed"
         )
 
-        member = await self.get_member_by_id(
-            trip_id, 
-            member_id
-        )
+        member = await self.membership_repo.remove_member_with_name(
+    trip_id,
+    member_id,
+)
 
         if member is None:
             raise HTTPException(
@@ -133,10 +142,6 @@ class TripMembershipService:
                 detail="Member not found"
             )
 
-        member = await self.membership_repo.remove_member(
-            trip_id, 
-            member_id
-        )
 
         await self.db.commit()
 

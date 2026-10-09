@@ -17,13 +17,14 @@ class TripMemberResponse(BaseModel):
     id: uuid.UUID
     trip_id: uuid.UUID
     user_id: uuid.UUID
+    user_name: str
     joined_at: date
     left_at: date | None
     status: str
     created_at: datetime
     updated_at: datetime
 
-    # model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True)
 
 class AddTripMemberResponse(BaseModel):
     status_code: int

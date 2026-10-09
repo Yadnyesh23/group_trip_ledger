@@ -1,0 +1,13 @@
+from pydantic import BaseModel
+import uuid
+from decimal import Decimal
+
+
+class AllocationResponse(BaseModel):
+    expense_id : uuid.UUID
+    user_id : uuid.UUID
+    user_name : str
+    amount : Decimal
+
+class AllocationListResponse(BaseModel):
+    allocations : list[AllocationResponse]
