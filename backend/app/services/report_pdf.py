@@ -110,7 +110,7 @@ def generate_trip_report_pdf(report: ReportResponseSchema) -> bytes:
 
         for allocation in expense.allocations:
             allocation_rows.append([
-                allocation.user_name,
+                allocation.member_name,
                 f"{allocation.amount:.2f}",
             ])
 
@@ -130,7 +130,7 @@ def generate_trip_report_pdf(report: ReportResponseSchema) -> bytes:
 
     for balance in report.balances.balances:
         balance_rows.append([
-            balance.user_name,
+            balance.member_name,
             f"{balance.balance:.2f}",
         ])
 

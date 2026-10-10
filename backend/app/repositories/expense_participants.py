@@ -1,8 +1,10 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 from app.models.expense_participants import ExpenseParticipantModel
+from app.models.trip_membership import TripMembershipModel
 from app.models.users import UserModel
+
 
 
 class ExpenseParticipantRepository:
@@ -39,12 +41,20 @@ class ExpenseParticipantRepository:
         self,
         expense_id,
     ) -> list[tuple[ExpenseParticipantModel, str]]:
+        participant_name = func.coalesce(
+            UserModel.name,
+            TripMembershipModel.display_name,
+        ).label("participant_name")
 
         stmt = (
-            select(ExpenseParticipantModel, UserModel.name)
+            select(ExpenseParticipantModel, participant_name)
             .join(
+                TripMembershipModel,
+                ExpenseParticipantModel.trip_member_id == TripMembershipModel.id,
+            )
+            .outerjoin(
                 UserModel,
-                ExpenseParticipantModel.user_id == UserModel.id,
+                TripMembershipModel.user_id == UserModel.id,
             )
             .where(
                 ExpenseParticipantModel.expense_id == expense_id
@@ -53,4 +63,4 @@ class ExpenseParticipantRepository:
 
         result = await self.db.execute(stmt)
 
-        return list(result.all())
+        return list(result.all())

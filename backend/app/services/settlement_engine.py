@@ -1,9 +1,4 @@
-balances = [
-    {"user_id": "d860b20f-8c47-4c81-ac4a-2e39b733f89d", "balance": 5000},
-    {"user_id": "39390e33-5766-4487-9915-a29db8d6fbd4", "balance": 1500},
-    {"user_id": "25aedaa9-1b30-43fb-b373-f8d01c957834", "balance": -2500},
-    {"user_id": "ebbd4ef3-7897-49f9-85dc-b0cce34a767c", "balance": -4000},
-]
+from decimal import Decimal
 
 
 class SettlementEngine:
@@ -11,16 +6,20 @@ class SettlementEngine:
     @staticmethod
     def settle_balances(balances: list[dict]) -> list[dict]:
         """
-        Output will be like
-        "Yash pays Rahul 2500"
-        "Yash pays Rahul 2500"
-        settlements = [
-            { "payer" : "Yash", "payee" : "Rahul", "amount" : 2500 },
-            { "payer" : "Yash", "payee" : "Rahul", "amount" : 2500 }
-        ]
+        Takes a list of dicts with "member_id" and "balance" keys.
+        Returns a list of settlement suggestions:
+            {"payer": <member_id>, "payee": <member_id>, "amount": <Decimal>}
+        where payer is someone who owes money (negative balance)
+        and payee is someone who should receive money (positive balance).
         """
-        creditors = [c for c in balances if c["balance"] > 0]
-        debtors = [d for d in balances if d["balance"] < 0]
+        creditors = [
+            {"member_id": c["member_id"], "balance": Decimal(str(c["balance"]))}
+            for c in balances if Decimal(str(c["balance"])) > 0
+        ]
+        debtors = [
+            {"member_id": d["member_id"], "balance": Decimal(str(d["balance"]))}
+            for d in balances if Decimal(str(d["balance"])) < 0
+        ]
 
         settlements = []
 
@@ -32,8 +31,8 @@ class SettlementEngine:
 
             settlements.append(
                 {
-                    "payer": debt_user["user_id"],
-                    "payee": credit_user["user_id"],
+                    "payer": debt_user["member_id"],
+                    "payee": credit_user["member_id"],
                     "amount": amount,
                 }
             )

@@ -10,17 +10,17 @@ class AllocationEngine:
     def calculate(
         expense_amount: Decimal,
         split_type: SplitType,
-        participant_user_ids: list[UUID],
+        participant_member_ids: list[UUID],
         custom_allocation: dict[UUID, Decimal] | None = None,
     ) -> dict[UUID, Decimal]:
 
         # -------------------------
         # 1. Basic validation
         # -------------------------
-        if not participant_user_ids:
+        if not participant_member_ids:
             raise ValueError("At least one participant is required")
 
-        if len(participant_user_ids) != len(set(participant_user_ids)):
+        if len(participant_member_ids) != len(set(participant_member_ids)):
             raise ValueError("Duplicate participants are not allowed")
 
         if expense_amount <= 0:
@@ -31,7 +31,7 @@ class AllocationEngine:
         # -------------------------
         if split_type == SplitType.EQUAL:
 
-            total_participants = len(participant_user_ids)
+            total_participants = len(participant_member_ids)
 
             # Calculate base amount to 2 decimal places
             total_cents = int(
@@ -46,7 +46,7 @@ class AllocationEngine:
 
             allocation = {}
 
-            for index, participant_id in enumerate(participant_user_ids):
+            for index, participant_id in enumerate(participant_member_ids):
 
                 cents = base_cents
 
@@ -71,17 +71,17 @@ class AllocationEngine:
                 )
 
             # Check that every participant has an allocation
-            if set(custom_allocation.keys()) != set(participant_user_ids):
+            if set(custom_allocation.keys()) != set(participant_member_ids):
                 raise ValueError(
                     "Custom allocation must contain exactly the participants"
                 )
 
             # Check individual amounts
-            for user_id, amount in custom_allocation.items():
+            for member_id, amount in custom_allocation.items():
 
                 if amount < 0:
                     raise ValueError(
-                        f"Allocation cannot be negative for user {user_id}"
+                        f"Allocation cannot be negative for member {member_id}"
                     )
 
             # Check total

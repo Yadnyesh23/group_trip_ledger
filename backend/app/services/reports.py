@@ -77,14 +77,13 @@ class ReportService:
             .get_all_expenses_with_payer_names(trip_id)
         )
 
-        # 5. Retrieve allocations together with each user's name.
+        # 5. Retrieve allocations together with each member's name.
         allocations_with_names = (
             await self.allocation_repository
             .get_all_allocations_with_names_by_trip(trip_id)
         )
 
         # Group allocations by expense ID.
-        # This makes it easy to attach each expense's allocations.
         allocations_by_expense: dict[UUID, list[dict]] = {}
 
         for allocation, user_name in allocations_with_names:
@@ -93,8 +92,8 @@ class ReportService:
                 [],
             ).append(
                 {
-                    "user_id": allocation.user_id,
-                    "user_name": user_name,
+                    "member_id": allocation.trip_member_id,
+                    "member_name": user_name,
                     "amount": allocation.amount,
                 }
             )
@@ -109,7 +108,7 @@ class ReportService:
                 "amount": expense.amount,
                 "split_type": expense.split_type,
                 "category": expense.category,
-                "paid_by_user_id": expense.paid_by_user_id,
+                "paid_by_member_id": expense.paid_by_member_id,
                 "paid_by_name": payer_name,
                 "expense_date": expense.expense_date,
                 "allocations": allocations_by_expense.get(
@@ -121,14 +120,12 @@ class ReportService:
         ]
 
         # 7. Calculate trip balances.
-        # Expected to include user_id, user_name, and balance.
         balances = await self.balance_service.get_balance_of_trip(
             trip_id,
             current_user_id,
         )
 
         # 8. Calculate suggested settlements.
-        # Expected to include payer/payee IDs and their names.
         settlements = await self.settlement_service.get_settlements(
             current_user_id,
             trip_id,
@@ -141,8 +138,8 @@ class ReportService:
             "allocations": [
                 {
                     "expense_id": allocation.expense_id,
-                    "user_id": allocation.user_id,
-                    "user_name": user_name,
+                    "member_id": allocation.trip_member_id,
+                    "member_name": user_name,
                     "amount": allocation.amount,
                 }
                 for allocation, user_name in allocations_with_names

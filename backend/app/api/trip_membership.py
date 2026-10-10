@@ -1,3 +1,4 @@
+
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -21,9 +22,27 @@ router = APIRouter(
 )
 
 
+def build_member_response(
+    member,
+    user_name: str,
+) -> TripMemberResponse:
+    return TripMemberResponse(
+        id=member.id,
+        trip_id=member.trip_id,
+        user_id=member.user_id,
+        user_name=user_name,
+        joined_at=member.joined_at,
+        left_at=member.left_at,
+        status=member.status,
+        created_at=member.created_at,
+        updated_at=member.updated_at,
+    )
+
+
 @router.post(
     "/members",
     response_model=AddTripMemberResponse,
+    status_code=201,
 )
 async def add_membership(
     trip_id: uuid.UUID,
@@ -33,30 +52,23 @@ async def add_membership(
 ):
     membership_service = TripMembershipService(db)
 
-    membership, user_name = await membership_service.create_membership(
-    trip_id=trip_id,
-    user_id=request.user_id,
-    current_user_id=current_user.id,
-)
+    try:
+        member, user_name = await membership_service.create_membership(
+            trip_id=trip_id,
+            display_name=request.display_name,
+            current_user_id=current_user.id,
+        )
 
-    await db.commit()
+        await db.commit()
 
-    return AddTripMemberResponse(
-        status_code=201,
-        message="Member added successfully",
-        data=TripMemberResponse(
-            id=membership.id,
-                trip_id=membership.trip_id,
-                user_id=membership.user_id,
-                user_name=user_name,
-                joined_at=membership.joined_at,
-                left_at=membership.left_at,
-                status=membership.status,
-                created_at=membership.created_at,
-                updated_at=membership.updated_at,
-
-        ),
-    )
+        return AddTripMemberResponse(
+            status_code=201,
+            message="Member added successfully",
+            data=build_member_response(member, user_name),
+        )
+    except Exception:
+        await db.rollback()
+        raise
 
 
 @router.get(
@@ -69,24 +81,13 @@ async def get_members(
     db: AsyncSession = Depends(get_db),
 ):
     membership_service = TripMembershipService(db)
-
-    members = await membership_service.get_all_members(trip_id)
+    members = await membership_service.get_all_members(trip_id, current_user.id)
 
     return TripMemberListResponse(
         members=[
-    TripMemberResponse(
-        id=member.id,
-        trip_id=member.trip_id,
-        user_id=member.user_id,
-        user_name=user_name,
-        joined_at=member.joined_at,
-        left_at=member.left_at,
-        status=member.status,
-        created_at=member.created_at,
-        updated_at=member.updated_at,
-    )
-    for member, user_name in members
-]
+            build_member_response(member, user_name)
+            for member, user_name in members
+        ]
     )
 
 
@@ -102,29 +103,20 @@ async def get_member_by_id(
 ):
     membership_service = TripMembershipService(db)
 
-    result = await membership_service.get_member_by_id( trip_id, member_id )
+    result = await membership_service.get_member_by_id(
+        trip_id,
+        member_id,
+        current_user.id,
+    )
 
-    if result is None: 
-        raise HTTPException( status_code=404, detail="Member not found", )
-    member, user_name = result
-
-    if not member:
+    if result is None:
         raise HTTPException(
             status_code=404,
             detail="Member not found",
         )
 
-    return TripMemberResponse(
-        id=member.id,
-        trip_id=member.trip_id,
-        user_id=member.user_id,
-        user_name=user_name,
-        joined_at=member.joined_at,
-        left_at=member.left_at,
-        status=member.status,
-        created_at=member.created_at,
-        updated_at=member.updated_at,
-    )
+    member, user_name = result
+    return build_member_response(member, user_name)
 
 
 @router.delete(
@@ -139,20 +131,15 @@ async def remove_member(
 ):
     membership_service = TripMembershipService(db)
 
-    member, user_name = await membership_service.remove_member(
-    trip_id,
-    member_id,
-    current_user.id,
-)
+    try:
+        member, user_name = await membership_service.remove_member(
+            trip_id=trip_id,
+            member_id=member_id,
+            current_user_id=current_user.id,
+        )
 
-    return TripMemberResponse(
-        id=member.id,
-        trip_id=member.trip_id,
-        user_id=member.user_id,
-        user_name=user_name,
-        joined_at=member.joined_at,
-        left_at=member.left_at,
-        status=member.status,
-        created_at=member.created_at,
-        updated_at=member.updated_at,
-    )
+        await db.commit()
+        return build_member_response(member, user_name)
+    except Exception:
+        await db.rollback()
+        raise

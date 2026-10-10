@@ -1,13 +1,14 @@
+
 import uuid
 from datetime import date, datetime, timezone
 from decimal import Decimal
 from enum import Enum
 
 from sqlalchemy import (
-    UUID,
     String,
     Date,
     DateTime,
+    UUID,
     ForeignKey,
     Numeric,
     Enum as SQLAlchemyEnum,
@@ -68,9 +69,10 @@ class ExpenseModel(Base):
         nullable=True,
     )
 
-    paid_by_user_id: Mapped[uuid.UUID] = mapped_column(
+    # The payer is a trip member, not necessarily a registered user.
+    paid_by_member_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("users.id"),
+        ForeignKey("trip_members.id"),
         nullable=False,
     )
 
@@ -93,24 +95,24 @@ class ExpenseModel(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    # relationships
-
+    # Relationships
     trip = relationship(
         "TripModel",
-        back_populates="expenses"
+        back_populates="expenses",
     )
 
-    paid_by = relationship(
-        "UserModel",
-        back_populates="expenses_paid"
+    paid_by_member = relationship(
+        "TripMembershipModel",
+        back_populates="expenses_paid",
+        foreign_keys=[paid_by_member_id],
     )
 
     expense_participants = relationship(
         "ExpenseParticipantModel",
-        back_populates="expense"
+        back_populates="expense",
     )
 
     expense_allocations = relationship(
         "ExpenseAllocationModel",
-        back_populates="expense"
+        back_populates="expense",
     )

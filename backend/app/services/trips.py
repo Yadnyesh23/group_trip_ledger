@@ -46,13 +46,19 @@ class TripService:
 
         trip = await self.trip_repo.create_trip(trip)
 
-        membership = TripMembershipModel(
+        existing_membership = await self.membership_repo.get_member_by_user_id(
+            trip.id,
+            user_id,
+        )
+        if not existing_membership:
+            membership = TripMembershipModel(
                 trip_id=trip.id,
                 user_id=user_id,
                 joined_at=date.today(),
                 status="ACTIVE",
             )
-        await self.membership_repo.create(membership)
+            await self.membership_repo.create(membership)
+
         await self.db.commit()
         return await self.trip_repo.get_trip_with_owner_name(
             trip.id
@@ -72,7 +78,8 @@ class TripService:
                 detail="Trip not found"
             )
 
-        if trip.owner_id != user_id:
+        is_member = await self.trip_repo.is_member(trip_id, user_id)
+        if not is_member and trip.owner_id != user_id:
             raise HTTPException(
                 status_code=403,
                 detail="You do not have access to this trip"
@@ -81,6 +88,7 @@ class TripService:
         return await self.trip_repo.get_trip_with_owner_name(
             trip_id
         )
+
 
     async def get_trips_by_owner(
         self,

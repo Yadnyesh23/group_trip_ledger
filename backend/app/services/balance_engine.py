@@ -18,9 +18,9 @@ class BalanceEngine:
     @staticmethod
     def calculate_balances(expenses: list[dict], allocations: list[dict]) -> dict[str, Decimal]:
         """
-        Returns {user_id: net_balance}.
-          positive -> user should receive that amount
-          negative -> user should pay that amount
+        Returns {member_id: net_balance}.
+          positive -> member should receive that amount
+          negative -> member should pay that amount
         Balances always sum to exactly zero.
         """
         to_dec = BalanceEngine._to_decimal
@@ -35,10 +35,10 @@ class BalanceEngine:
         if orphans:
             raise BalanceError(f"Allocations reference unknown expense ids: {sorted(orphans)}")
 
-        paid = defaultdict(Decimal)   # what each user actually paid out
-        owed = defaultdict(Decimal)   # what each user's share of everything adds up to
+        paid = defaultdict(Decimal)   # what each member actually paid out
+        owed = defaultdict(Decimal)   # what each member's share of everything adds up to
 
-        # 2. Walk each expense: credit the payer, debit every allocated user
+        # 2. Walk each expense: credit the payer, debit every allocated member
         for expense in expenses:
             amount = to_dec(expense["amount"])
             expense_allocs = allocs_by_expense.get(expense["id"], [])
@@ -51,13 +51,13 @@ class BalanceEngine:
                     f"allocations sum to {allocated}, expected {amount}"
                 )
 
-            paid[expense["paid_by_user_id"]] += amount
+            paid[expense["paid_by_member_id"]] += amount
             for a in expense_allocs:
-                owed[a["user_id"]] += to_dec(a["amount"])
+                owed[a["member_id"]] += to_dec(a["amount"])
 
         # 4. Net = paid - owed, for everyone who appears on either side
-        users = set(paid) | set(owed)
-        balances = {u: (paid[u] - owed[u]).quantize(TWO_PLACES) for u in users}
+        members = set(paid) | set(owed)
+        balances = {m: (paid[m] - owed[m]).quantize(TWO_PLACES) for m in members}
 
         # 5. Invariant: in a closed group, everything nets to zero
         if sum(balances.values(), ZERO) != ZERO:
@@ -65,5 +65,3 @@ class BalanceEngine:
 
         # 6. Biggest creditor first, biggest debtor last
         return dict(sorted(balances.items(), key=lambda kv: kv[1], reverse=True))
-
-

@@ -4,10 +4,11 @@ from decimal import Decimal
 
 
 class AllocationResponse(BaseModel):
-    expense_id : uuid.UUID
-    user_id : uuid.UUID
-    user_name : str
-    amount : Decimal
+    expense_id: uuid.UUID
+    member_id: uuid.UUID
+    member_name: str
+    amount: Decimal
+
 
 class AllocationListResponse(BaseModel):
-    allocations : list[AllocationResponse]
+    allocations: list[AllocationResponse]

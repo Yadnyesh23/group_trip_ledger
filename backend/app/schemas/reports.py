@@ -11,8 +11,8 @@ from app.schemas.settlements import SettlementListResponse
 
 
 class ReportAllocationResponse(BaseModel):
-    user_id: UUID
-    user_name: str
+    member_id: UUID
+    member_name: str
     amount: Decimal
 
     model_config = ConfigDict(from_attributes=True)
@@ -26,7 +26,7 @@ class ReportExpenseResponse(BaseModel):
     amount: Decimal
     split_type: SplitType
     category: str | None
-    paid_by_user_id: UUID
+    paid_by_member_id: UUID
     paid_by_name: str
     expense_date: date
 
